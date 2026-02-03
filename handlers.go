@@ -84,7 +84,7 @@ func (ph *ProxyHandler) proxyToOrigin(w http.ResponseWriter, r *http.Request, or
 
 		// Apply default root object before adding target prefix
 		// Check if the path is "/" or empty (both mean root) and if so, rewrite to the configured default
-		if (req.URL.Path == "" || req.URL.Path == "/") {
+		if req.URL.Path == "" || req.URL.Path == "/" {
 			if origin.DefaultRootObject != nil && *origin.DefaultRootObject != "" {
 				req.URL.Path = "/" + *origin.DefaultRootObject
 			} else if ph.config.Server.DefaultRootObject != "" {
