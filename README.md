@@ -665,7 +665,12 @@ If you see errors like "installsuffix" during Docker build:
 
 ## License
 
-MIT License - See LICENSE file
+Licensed under the Apache License, Version 2.0. See `LICENSE`.
+
+## Trademark notice
+
+Not affiliated with, endorsed by, or sponsored by Amazon Web Services (AWS).
+Amazon S3 and Amazon CloudFront are trademarks of Amazon.com, Inc. or its affiliates.
 
 ## Related Projects
 

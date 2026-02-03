@@ -401,7 +401,12 @@ docker compose restart cloudfauxnt
 
 ## License
 
-MIT License - Same as CloudFauxnt
+Licensed under the Apache License, Version 2.0. See `LICENSE` in the parent directory.
+
+## Trademark notice
+
+Not affiliated with, endorsed by, or sponsored by Amazon Web Services (AWS).
+Amazon S3 and Amazon CloudFront are trademarks of Amazon.com, Inc. or its affiliates.
 
 ## Contributing
 
