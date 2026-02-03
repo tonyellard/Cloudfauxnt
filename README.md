@@ -27,13 +27,13 @@ CloudFauxnt and ess-three run as separate Docker containers on a shared network.
 
 **Terminal 1: Start ess-three**
 ```bash
-cd /home/tony/Documents/essthree
+cd /path/to/ess-three
 docker compose up -d
 ```
 
 **Terminal 2: Start CloudFauxnt**
 ```bash
-cd /home/tony/Documents/Cloudfauxnt
+cd /path/to/CloudFauxnt
 docker compose up -d
 
 # Check health
@@ -325,10 +325,10 @@ networks:
 **Start both services:**
 ```bash
 # Terminal 1
-cd /home/tony/Documents/essthree && docker compose up -d
+cd /path/to/ess-three && docker compose up -d
 
 # Terminal 2
-cd /home/tony/Documents/Cloudfauxnt && docker compose up -d
+cd /path/to/CloudFauxnt && docker compose up -d
 
 # Verify both are running
 docker ps | grep -E "cloudfauxnt|ess-three"

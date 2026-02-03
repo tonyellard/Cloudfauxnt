@@ -23,18 +23,18 @@ A complete .NET 10 console application demonstrating how to use CloudFauxnt to f
 
 ```bash
 # Terminal 1: Start ess-three
-cd /home/tony/Documents/essthree
+cd /path/to/ess-three
 docker compose up -d
 
-# Terminal 2: Start CloudFauxnt  
-cd /home/tony/Documents/Cloudfauxnt
+# Terminal 2: Start CloudFauxnt
+cd /path/to/CloudFauxnt
 docker compose up -d
 ```
 
 ### 2. Generate RSA Keys (for signing examples)
 
 ```bash
-cd /home/tony/Documents/Cloudfauxnt/keys
+cd /path/to/CloudFauxnt/keys
 openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -pubout -out public.pem
 ```
@@ -42,7 +42,7 @@ openssl rsa -in private.pem -pubout -out public.pem
 ### 3. Run the Example
 
 ```bash
-cd /home/tony/Documents/Cloudfauxnt/dotnet-example
+cd /path/to/CloudFauxnt/dotnet-example
 dotnet run
 ```
 
@@ -287,7 +287,7 @@ CLOUDFAUXNT_KEY_PAIR_ID="APKAIJRANDOMSTRING123" dotnet run
 **Solutions:**
 - Generate keys:
   ```bash
-  cd /home/tony/Documents/Cloudfauxnt/keys
+  cd /path/to/CloudFauxnt/keys
   openssl genrsa -out private.pem 2048
   openssl rsa -in private.pem -pubout -out public.pem
   ```
@@ -333,7 +333,7 @@ The example uses the default CloudFauxnt configuration. To customize:
 
 ### 1. Update CloudFauxnt Config
 
-Edit `/home/tony/Documents/Cloudfauxnt/config.yaml`:
+Edit `/path/to/CloudFauxnt/config.yaml`:
 
 ```yaml
 server:
@@ -365,7 +365,7 @@ var resourcePath = "/s3/MyTestFile.txt";
 ### 3. Restart CloudFauxnt
 
 ```bash
-cd /home/tony/Documents/Cloudfauxnt
+cd /path/to/CloudFauxnt
 docker compose restart cloudfauxnt
 ```
 

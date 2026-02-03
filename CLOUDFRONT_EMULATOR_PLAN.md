@@ -540,7 +540,7 @@ curl http://localhost:8080/health  # Optional health endpoint
 ## References & Related Code
 
 **Ess-Three:**
-- GitHub: https://github.com/tonyellard/Ess-Three
+- GitHub: https://github.com/{github-username}/Ess-Three
 - Main handler: `internal/server/handlers.go` (540+ lines)
 - Storage: `internal/storage/storage.go`
 - Docker: `Dockerfile` (multi-stage build pattern to follow)

@@ -27,13 +27,13 @@ CloudFauxnt and ess-three run as separate Docker containers connected via a shar
 
 **Terminal 1: Start ess-three**
 ```bash
-cd /home/tony/Documents/essthree
+cd /path/to/ess-three
 docker compose up -d
 ```
 
 **Terminal 2: Start CloudFauxnt**
 ```bash
-cd /home/tony/Documents/Cloudfauxnt
+cd /path/to/CloudFauxnt
 docker compose up -d
 ```
 
@@ -91,11 +91,11 @@ Result:   http://ess-three:9000/test-bucket/MyTestFile.txt
 CloudFauxnt and ess-three are separate Docker services that communicate via a shared Docker network (`shared-network`):
 
 ```bash
-# Start ess-three (from essthree directory)
-cd /home/tony/Documents/essthree && docker compose up -d
+# Start ess-three (from ess-three directory)
+cd /path/to/ess-three && docker compose up -d
 
 # Start CloudFauxnt (from Cloudfauxnt directory)
-cd /home/tony/Documents/Cloudfauxnt && docker compose up -d
+cd /path/to/CloudFauxnt && docker compose up -d
 
 # View logs
 docker logs cloudfauxnt -f
@@ -119,13 +119,13 @@ You can also run both services locally without Docker:
 
 **Terminal 1: ess-three**
 ```bash
-cd /home/tony/Documents/essthree
+cd /path/to/ess-three
 ./ess-three
 ```
 
 **Terminal 2: CloudFauxnt**
 ```bash
-cd /home/tony/Documents/Cloudfauxnt
+cd /path/to/CloudFauxnt
 go build -o cloudfauxnt .
 ./cloudfauxnt --config config.yaml
 ```
@@ -147,7 +147,7 @@ origins:
 
 1. **Generate RSA keys:**
    ```bash
-   cd /home/tony/Documents/Cloudfauxnt/keys
+   cd /path/to/CloudFauxnt/keys
    openssl genrsa -out private.pem 2048
    openssl rsa -in private.pem -pubout -out public.pem
    cd ..
