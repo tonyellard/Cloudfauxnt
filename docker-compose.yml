@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  cloudfauxnt:
+    build: .
+    container_name: cloudfauxnt
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount configuration file (copy config.example.yaml to config.yaml)
+      - ./config.yaml:/app/config.yaml:ro
+      # Mount RSA keys directory
+      - ./keys:/app/keys:ro
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    driver: bridge
+    name: shared-network

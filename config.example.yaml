@@ -1,0 +1,74 @@
+# CloudFauxnt Configuration Example
+# Copy this file to config.yaml and customize for your environment
+
+# HTTP server configuration
+server:
+  port: 8080
+  host: "0.0.0.0"
+  timeout_seconds: 30
+
+# Backend origin servers
+# CloudFauxnt will route requests to these origins based on path patterns
+origins:
+  # Example: S3 emulator (ess-three)
+  # For Docker: use http://ess-three:9000 (service name)
+  # For local: use http://127.0.0.1:9000 (IPv4 to avoid IPv6 issues)
+  - name: s3
+    url: http://ess-three:9000
+    path_patterns:
+      - "/s3/*"
+
+  # Example: Path rewriting to specific S3 bucket
+  # This enables flexible URL routing:
+  #   /s3/file.txt  ->  /test-bucket/file.txt
+  # - name: s3-with-rewrite
+  #   url: http://ess-three:9000
+  #   path_patterns:
+  #     - "/s3/*"
+  #   strip_prefix: "/s3"           # Remove /s3 from request path
+  #   target_prefix: "/test-bucket" # Add /test-bucket to proxied path
+  #
+  # Example: Rewrite web files path
+  # - name: myfiles-bucket
+  #   url: http://ess-three:9000
+  #   path_patterns:
+  #     - "/MyFiles/*"
+  #   strip_prefix: "/MyFiles"
+  #   target_prefix: "/myfiles-bucket"
+
+  # Example: External API
+  # - name: external-api
+  #   url: https://api.example.com
+  #   path_patterns:
+  #     - "/api/*"
+
+# CORS (Cross-Origin Resource Sharing) configuration
+cors:
+  enabled: true
+  allowed_origins:
+    - "*"  # Allow all origins (use specific origins in production)
+    # - "http://localhost:3000"
+    # - "https://app.example.com"
+  allowed_methods:
+    - "GET"
+    - "HEAD"
+    - "OPTIONS"
+    - "PUT"
+    - "POST"
+    - "DELETE"
+  allowed_headers:
+    - "*"  # Allow all headers
+    # - "Content-Type"
+    # - "Authorization"
+  max_age: 3600  # Preflight cache duration in seconds
+
+# CloudFront signed URL/cookie validation
+signing:
+  enabled: false  # Set to true to enable signature validation
+  key_pair_id: "APKAJEXAMPLE123456"  # Your CloudFront key pair ID
+  public_key_path: "/app/keys/public.pem"  # Path to RSA public key
+
+# Cache behavior (optional, not implemented in MVP)
+cache:
+  enabled: false
+  default_ttl_seconds: 300

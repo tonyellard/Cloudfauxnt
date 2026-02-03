@@ -1,0 +1,11 @@
+# Force LF line endings everywhere (prevents Windows/WSL build issues)
+* text=auto eol=lf
+*.sh text eol=lf
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+Makefile text eol=lf

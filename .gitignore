@@ -1,0 +1,33 @@
+# Config files (use config.example.yaml as template)
+config.yaml
+
+# RSA signing keys
+keys/*.pem
+keys/*.key
+
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+cloudfauxnt
+*.test
+*.out
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
