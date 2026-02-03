@@ -28,8 +28,13 @@ func main() {
 	// Initialize signature validator if signing is enabled
 	var validator *SignatureValidator
 	if config.Signing.Enabled {
-		validator = NewSignatureValidator(config.Signing.PublicKey, config.Signing.KeyPairID)
-		log.Printf("CloudFront signature validation enabled (Key Pair ID: %s)", config.Signing.KeyPairID)
+		clockSkew := config.Signing.TokenOptions.ClockSkewSeconds
+		if clockSkew == 0 {
+			clockSkew = 30 // Default 30 seconds clock skew
+		}
+		validator = NewSignatureValidator(config.Signing.PublicKey, config.Signing.KeyPairID, clockSkew)
+		log.Printf("CloudFront signature validation enabled (Key Pair ID: %s, Clock Skew: %d seconds)",
+			config.Signing.KeyPairID, clockSkew)
 	} else {
 		log.Println("CloudFront signature validation disabled")
 	}

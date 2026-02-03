@@ -243,6 +243,45 @@ origins:
 - Catch-all: `/*` matches everything
 - Longest pattern wins (first match if equal length)
 
+### Per-Origin Signature Enforcement
+
+Override the global signature requirement on a per-origin basis to allow mixed security levels:
+
+```yaml
+signing:
+  enabled: true  # Global default
+  # ... other settings ...
+
+origins:
+  # Public bucket - override to allow unsigned access
+  - name: public-bucket
+    url: http://ess-three:9000
+    path_patterns: ["/public/*"]
+    require_signature: false  # Override global: allow unsigned
+  
+  # Private bucket - explicitly require signatures
+  - name: private-bucket
+    url: http://ess-three:9000
+    path_patterns: ["/private/*"]
+    require_signature: true   # Override global: require signed
+  
+  # Protected bucket - uses global setting (signing.enabled)
+  - name: protected-bucket
+    url: http://ess-three:9000
+    path_patterns: ["/protected/*"]
+    # Omit require_signature to inherit global setting
+```
+
+**Signature Requirement Logic:**
+1. If `require_signature` is set on the origin, use that value
+2. Otherwise, use the global `signing.enabled` setting
+3. When a signature is required but missing/invalid, CloudFauxnt returns 403 Forbidden
+
+**Real-World Example:**
+- Public downloads: `/public/*` → `require_signature: false` (allow unsigned)
+- Temporary links: `/download/*` → Use global setting (inherited)
+- Premium content: `/premium/*` → `require_signature: true` (always require)
+
 ### CORS
 
 ```yaml
@@ -271,7 +310,28 @@ signing:
   enabled: true
   key_pair_id: "APKAJEXAMPLE123456"
   public_key_path: "/app/keys/public.pem"
+  
+  # Token options for signed URLs and cookies
+  token_options:
+    # Clock skew tolerance in seconds for expiration validation
+    # Allows for time differences in distributed systems (default: 30)
+    clock_skew_seconds: 30
+    
+    # Default TTL for signed URLs in seconds (default: 3600 = 1 hour)
+    default_url_ttl_seconds: 3600
+    
+    # Default TTL for signed cookies in seconds (default: 86400 = 24 hours)
+    default_cookie_ttl_seconds: 86400
+    
+    # Allow wildcard patterns in signed URLs (default: false)
+    allow_wildcard_patterns: false
 ```
+
+**Token Options Explained:**
+- **clock_skew_seconds**: Tolerance window for token expiration validation. In distributed systems where server clocks might differ by a few seconds, this prevents legitimate tokens from being rejected. Recommended range: 30-60 seconds.
+- **default_url_ttl_seconds**: Default time-to-live for generated signed URLs if not explicitly specified. Clients can override by specifying custom expiration times.
+- **default_cookie_ttl_seconds**: Default time-to-live for generated signed cookies if not explicitly specified.
+- **allow_wildcard_patterns**: Security setting. Disabled by default since CloudFront doesn't natively support wildcard patterns in signed URLs.
 
 ## Integration with ess-three
 
@@ -419,6 +479,66 @@ curl -X OPTIONS \
 # View logs
 docker logs cloudfauxnt -f
 docker logs ess-three -f
+```
+
+### Testing Token Expiration and Clock Skew
+
+To test expiration validation and clock skew tolerance:
+
+```bash
+# Test with a token that expires in 25 seconds
+# (should pass with default 30-second clock skew)
+curl "http://localhost:8080/s3/file.txt?Expires=$(($(date +%s) + 25))&Signature=...&Key-Pair-Id=..."
+
+# Test with a token that's already expired
+# (should fail)
+curl "http://localhost:8080/s3/file.txt?Expires=$(($(date +%s) - 60))&Signature=...&Key-Pair-Id=..."
+
+# Test with custom clock skew configured
+# Edit config.yaml:
+# signing:
+#   token_options:
+#     clock_skew_seconds: 60  # Allow 60-second tolerance
+# Then restart CloudFauxnt: docker compose restart cloudfauxnt
+```
+
+### Testing Per-Origin Signature Enforcement
+
+To test mixed security levels with different paths:
+
+```yaml
+# config.yaml example
+signing:
+  enabled: true
+  key_pair_id: "APKAJEXAMPLE123456"
+  public_key_path: "/app/keys/public.pem"
+
+origins:
+  - name: public
+    url: http://ess-three:9000
+    path_patterns: ["/public/*"]
+    require_signature: false      # Unsigned access allowed
+  
+  - name: private
+    url: http://ess-three:9000
+    path_patterns: ["/private/*"]
+    require_signature: true       # Signature required
+```
+
+Test behavior:
+
+```bash
+# Public path - should work without signature
+curl http://localhost:8080/public/file.txt
+# ✅ 200 OK
+
+# Private path without signature
+curl http://localhost:8080/private/file.txt
+# ❌ 403 Forbidden - AccessDenied
+
+# Private path with valid signature
+curl "http://localhost:8080/private/file.txt?Expires=...&Signature=...&Key-Pair-Id=..."
+# ✅ 200 OK
 ```
 
 ## Development

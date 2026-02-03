@@ -17,7 +17,8 @@ origins:
     url: http://ess-three:9000
     path_patterns:
       - "/s3/*"
-
+    strip_prefix: "/s3"
+    target_prefix: "/test-bucket"
   # Example: Path rewriting to specific S3 bucket
   # This enables flexible URL routing:
   #   /s3/file.txt  ->  /test-bucket/file.txt
@@ -35,6 +36,27 @@ origins:
   #     - "/MyFiles/*"
   #   strip_prefix: "/MyFiles"
   #   target_prefix: "/myfiles-bucket"
+
+  # Example: Per-origin signature enforcement
+  # This allows some origins to require signatures while others don't
+  # (when signing.enabled is true globally)
+  # - name: public-bucket
+  #   url: http://ess-three:9000
+  #   path_patterns:
+  #     - "/public/*"
+  #   require_signature: false       # Override global setting - allow unsigned access
+  #
+  # - name: private-bucket
+  #   url: http://ess-three:9000
+  #   path_patterns:
+  #     - "/private/*"
+  #   require_signature: true        # Override global setting - require signatures
+  #
+  # - name: protected-bucket
+  #   url: http://ess-three:9000
+  #   path_patterns:
+  #     - "/protected/*"
+  #   # Omit require_signature to use the global signing.enabled setting
 
   # Example: External API
   # - name: external-api
@@ -64,11 +86,24 @@ cors:
 
 # CloudFront signed URL/cookie validation
 signing:
-  enabled: false  # Set to true to enable signature validation
+  enabled: true  # Set to true to enable signature validation
   key_pair_id: "APKAJEXAMPLE123456"  # Your CloudFront key pair ID
   public_key_path: "/app/keys/public.pem"  # Path to RSA public key
-
-# Cache behavior (optional, not implemented in MVP)
-cache:
-  enabled: false
-  default_ttl_seconds: 300
+  
+  # Token configuration options for testing and production
+  token_options:
+    # Clock skew in seconds - allows for clock differences between client and server
+    # when validating token expiration (recommended: 30-60 seconds)
+    clock_skew_seconds: 30
+    
+    # Default TTL for signed URLs (in seconds)
+    # Clients can override by specifying custom expiration times
+    default_url_ttl_seconds: 3600  # 1 hour
+    
+    # Default TTL for signed cookies (in seconds)
+    # Clients can override by specifying custom expiration times
+    default_cookie_ttl_seconds: 86400  # 24 hours
+    
+    # Allow wildcard patterns in signed URLs (e.g., /files/*)
+    # Note: Wildcards in URLs are not standard CloudFront behavior
+    allow_wildcard_patterns: false

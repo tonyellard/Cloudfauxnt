@@ -322,9 +322,13 @@ CLOUDFAUXNT_KEY_PAIR_ID="APKAIJRANDOMSTRING123" dotnet run
     enabled: true
     key_pair_id: "APKAJEXAMPLE123456"
     public_key_path: "/app/keys/public.pem"
+    token_options:
+      clock_skew_seconds: 30          # Allow 30-second time tolerance
+      default_url_ttl_seconds: 3600   # 1 hour default
   ```
 - Verify the key pair ID matches between the signer and CloudFauxnt config
 - Verify the expiration time is in the future (check system clock)
+- If clock difference is large (>30 seconds), increase `clock_skew_seconds` in token_options
 - Check CloudFauxnt logs: `docker logs cloudfauxnt -f`
 
 ## Integration with CloudFauxnt Config
@@ -350,7 +354,26 @@ signing:
   enabled: true
   key_pair_id: "APKAJEXAMPLE123456"
   public_key_path: "/app/keys/public.pem"
+  
+  # Token options affect signature validation
+  token_options:
+    # Clock skew tolerance (recommended: 30-60 seconds)
+    # Allows for clock differences in distributed systems
+    clock_skew_seconds: 30
+    
+    # Default TTL for signed URLs (1 hour)
+    # Can be overridden per-URL in client code
+    default_url_ttl_seconds: 3600
+    
+    # Default TTL for signed cookies (24 hours)
+    # Can be overridden per-request in client code
+    default_cookie_ttl_seconds: 86400
 ```
+
+**Token Options Impact:**
+- If you see "signature expired" errors, check the system clock difference and increase `clock_skew_seconds`
+- The `default_url_ttl_seconds` is informational; clients set their own expiration via the `DateTime` parameter
+- The `default_cookie_ttl_seconds` is informational; clients set their own expiration via the `DateTime` parameter
 
 ### 2. Update the Example
 

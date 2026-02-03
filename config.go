@@ -17,7 +17,6 @@ type Config struct {
 	Origins []Origin      `yaml:"origins"`
 	CORS    CORSConfig    `yaml:"cors"`
 	Signing SigningConfig `yaml:"signing"`
-	Cache   CacheConfig   `yaml:"cache"`
 }
 
 // ServerConfig holds HTTP server settings
@@ -29,11 +28,12 @@ type ServerConfig struct {
 
 // Origin represents a backend origin server
 type Origin struct {
-	Name         string   `yaml:"name"`
-	URL          string   `yaml:"url"`
-	PathPatterns []string `yaml:"path_patterns"`
-	StripPrefix  string   `yaml:"strip_prefix"`  // Optional: remove this prefix from request path
-	TargetPrefix string   `yaml:"target_prefix"` // Optional: add this prefix to proxied path
+	Name             string   `yaml:"name"`
+	URL              string   `yaml:"url"`
+	PathPatterns     []string `yaml:"path_patterns"`
+	StripPrefix      string   `yaml:"strip_prefix"`      // Optional: remove this prefix from request path
+	TargetPrefix     string   `yaml:"target_prefix"`     // Optional: add this prefix to proxied path
+	RequireSignature *bool    `yaml:"require_signature"` // Optional: require CloudFront signature for this origin (null/empty uses global setting)
 }
 
 // CORSConfig holds CORS policy settings
@@ -51,12 +51,20 @@ type SigningConfig struct {
 	KeyPairID     string `yaml:"key_pair_id"`
 	PublicKeyPath string `yaml:"public_key_path"`
 	PublicKey     *rsa.PublicKey
+	// Token options for testing and configuration
+	TokenOptions TokenOptions `yaml:"token_options"`
 }
 
-// CacheConfig holds cache behavior settings
-type CacheConfig struct {
-	Enabled           bool `yaml:"enabled"`
-	DefaultTTLSeconds int  `yaml:"default_ttl_seconds"`
+// TokenOptions holds configuration for signed URL and cookie tokens
+type TokenOptions struct {
+	// ClockSkewSeconds allows for clock skew between client and server when validating expiration
+	ClockSkewSeconds int `yaml:"clock_skew_seconds"`
+	// DefaultURLTTLSeconds is the default TTL for signed URLs if not otherwise specified
+	DefaultURLTTLSeconds int `yaml:"default_url_ttl_seconds"`
+	// DefaultCookieTTLSeconds is the default TTL for signed cookies if not otherwise specified
+	DefaultCookieTTLSeconds int `yaml:"default_cookie_ttl_seconds"`
+	// AllowWildcardPatterns controls whether signed URLs can use wildcard patterns (default: false)
+	AllowWildcardPatterns bool `yaml:"allow_wildcard_patterns"`
 }
 
 // LoadConfig reads and parses the YAML configuration file

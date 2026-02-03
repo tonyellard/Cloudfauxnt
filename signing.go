@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,15 +16,17 @@ import (
 
 // SignatureValidator handles CloudFront signature validation
 type SignatureValidator struct {
-	publicKey *rsa.PublicKey
-	keyPairID string
+	publicKey        *rsa.PublicKey
+	keyPairID        string
+	clockSkewSeconds int64 // Allow for clock skew when validating expiration
 }
 
 // NewSignatureValidator creates a new signature validator
-func NewSignatureValidator(publicKey *rsa.PublicKey, keyPairID string) *SignatureValidator {
+func NewSignatureValidator(publicKey *rsa.PublicKey, keyPairID string, clockSkewSeconds int) *SignatureValidator {
 	return &SignatureValidator{
-		publicKey: publicKey,
-		keyPairID: keyPairID,
+		publicKey:        publicKey,
+		keyPairID:        keyPairID,
+		clockSkewSeconds: int64(clockSkewSeconds),
 	}
 }
 
@@ -67,8 +70,9 @@ func (sv *SignatureValidator) validateSignedURL(r *http.Request) error {
 		return fmt.Errorf("invalid Expires parameter: %w", err)
 	}
 
-	// Check if expired
-	if time.Now().Unix() > expiresInt {
+	// Check if expired (with clock skew tolerance)
+	currentTime := time.Now().Unix()
+	if currentTime > expiresInt+sv.clockSkewSeconds {
 		return fmt.Errorf("signed URL has expired")
 	}
 
@@ -140,8 +144,51 @@ func (sv *SignatureValidator) validateSignedCookies(r *http.Request) error {
 		return fmt.Errorf("cookie signature verification failed: %w", err)
 	}
 
-	// TODO: Parse policy JSON and check expiration
-	// For MVP, we'll accept valid signatures
+	// Parse and validate policy expiration
+	if err := sv.validatePolicyExpiration(string(policyBytes)); err != nil {
+		return fmt.Errorf("policy validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// validatePolicyExpiration parses the policy JSON and checks if it has expired
+func (sv *SignatureValidator) validatePolicyExpiration(policyStr string) error {
+	type Condition struct {
+		DateLessThan struct {
+			EpochTime int64 `json:"AWS:EpochTime"`
+		} `json:"DateLessThan"`
+	}
+
+	type Statement struct {
+		Resource  string    `json:"Resource"`
+		Condition Condition `json:"Condition"`
+	}
+
+	type Policy struct {
+		Statement []Statement `json:"Statement"`
+	}
+
+	var policy Policy
+	if err := json.Unmarshal([]byte(policyStr), &policy); err != nil {
+		return fmt.Errorf("failed to parse policy JSON: %w", err)
+	}
+
+	if len(policy.Statement) == 0 {
+		return fmt.Errorf("policy contains no statements")
+	}
+
+	// Check if the first statement has expired
+	expirationTime := policy.Statement[0].Condition.DateLessThan.EpochTime
+	if expirationTime == 0 {
+		return fmt.Errorf("policy missing expiration time")
+	}
+
+	// Check if expired (with clock skew tolerance)
+	currentTime := time.Now().Unix()
+	if currentTime > expirationTime+sv.clockSkewSeconds {
+		return fmt.Errorf("policy has expired")
+	}
 
 	return nil
 }

@@ -29,19 +29,26 @@ func NewProxyHandler(config *Config, validator *SignatureValidator) *ProxyHandle
 
 // ServeHTTP handles the proxy request
 func (ph *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Validate signature if signing is enabled
-	if ph.config.Signing.Enabled {
-		if err := ph.validator.ValidateRequest(r); err != nil {
-			ph.writeCloudFrontError(w, "AccessDenied", err.Error(), http.StatusForbidden)
-			return
-		}
-	}
-
-	// Find matching origin
+	// Find matching origin first to determine signature requirement
 	origin, err := ph.config.FindOrigin(r.URL.Path)
 	if err != nil {
 		ph.writeCloudFrontError(w, "NoSuchKey", "The specified path does not match any configured origin", http.StatusNotFound)
 		return
+	}
+
+	// Determine if signature is required for this origin
+	requireSignature := ph.config.Signing.Enabled // Default to global setting
+	if origin.RequireSignature != nil {
+		// Per-origin setting overrides global setting
+		requireSignature = *origin.RequireSignature
+	}
+
+	// Validate signature if required
+	if requireSignature {
+		if err := ph.validator.ValidateRequest(r); err != nil {
+			ph.writeCloudFrontError(w, "AccessDenied", err.Error(), http.StatusForbidden)
+			return
+		}
 	}
 
 	// Proxy to origin

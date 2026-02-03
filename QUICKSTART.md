@@ -159,6 +159,12 @@ origins:
      enabled: true
      key_pair_id: "APKAJEXAMPLE123456"
      public_key_path: "/app/keys/public.pem"  # Path inside Docker container
+     
+     # Optional: Configure token behavior
+     token_options:
+       clock_skew_seconds: 30          # Allow 30-second time tolerance
+       default_url_ttl_seconds: 3600   # 1-hour default TTL
+       default_cookie_ttl_seconds: 86400  # 24-hour default TTL
    ```
 
 3. **Rebuild and restart CloudFauxnt:**
@@ -171,7 +177,10 @@ origins:
 4. **Generate and test a signed URL:**
    See [keys/README.md](keys/README.md) for Python example
 
-3. **Generate signed URLs** (see [keys/README.md](keys/README.md) for Python example)
+**Token Options Explained:**
+- `clock_skew_seconds` - Time tolerance for distributed systems where clocks differ slightly
+- `default_url_ttl_seconds` - Default expiration time for signed URLs
+- `default_cookie_ttl_seconds` - Default expiration time for signed cookies
 
 ### Add Multiple Origins
 
@@ -195,6 +204,34 @@ origins:
 ```
 
 Requests to `/api/users` go to `api.example.com`, `/s3/bucket/key` goes to S3, everything else goes to localhost:3000.
+
+### Mixed Security Levels (Per-Origin Signatures)
+
+When `signing.enabled: true`, you can allow unsigned access to specific origins:
+
+```yaml
+signing:
+  enabled: true
+  # ... other settings ...
+
+origins:
+  - name: public-files
+    url: http://ess-three:9000
+    path_patterns: ["/public/*"]
+    require_signature: false   # Allow unsigned downloads
+  
+  - name: premium-content
+    url: http://ess-three:9000
+    path_patterns: ["/premium/*"]
+    require_signature: true    # Always require signed URLs/cookies
+  
+  - name: temp-downloads
+    url: http://ess-three:9000
+    path_patterns: ["/temp/*"]
+    # Omit require_signature - inherits global signing.enabled
+```
+
+Now `/public/file.txt` works unsigned, but `/premium/file.txt` requires a signature.
 
 ### Configure CORS
 
@@ -233,6 +270,8 @@ cors:
 - Verify `key_pair_id` matches between config and signing code
 - Check expiration time is in the future
 - Ensure public key is valid: `openssl rsa -in keys/public.pem -pubin -text`
+- If you see "signature expired" errors from distributed systems, increase `clock_skew_seconds` in `token_options`
+- Check system time is synchronized: `date` should show correct time
 
 ### CORS errors in browser
 
