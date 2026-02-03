@@ -21,19 +21,21 @@ type Config struct {
 
 // ServerConfig holds HTTP server settings
 type ServerConfig struct {
-	Port           int    `yaml:"port"`
-	Host           string `yaml:"host"`
-	TimeoutSeconds int    `yaml:"timeout_seconds"`
+	Port              int    `yaml:"port"`
+	Host              string `yaml:"host"`
+	DefaultRootObject string `yaml:"default_root_object"` // Global default (fallback if origin doesn't specify one)
+	TimeoutSeconds    int    `yaml:"timeout_seconds"`
 }
 
 // Origin represents a backend origin server
 type Origin struct {
-	Name             string   `yaml:"name"`
-	URL              string   `yaml:"url"`
-	PathPatterns     []string `yaml:"path_patterns"`
-	StripPrefix      string   `yaml:"strip_prefix"`      // Optional: remove this prefix from request path
-	TargetPrefix     string   `yaml:"target_prefix"`     // Optional: add this prefix to proxied path
-	RequireSignature *bool    `yaml:"require_signature"` // Optional: require CloudFront signature for this origin (null/empty uses global setting)
+	Name              string   `yaml:"name"`
+	URL               string   `yaml:"url"`
+	PathPatterns      []string `yaml:"path_patterns"`
+	StripPrefix       string   `yaml:"strip_prefix"`        // Optional: remove this prefix from request path
+	TargetPrefix      string   `yaml:"target_prefix"`       // Optional: add this prefix to proxied path
+	RequireSignature  *bool    `yaml:"require_signature"`   // Optional: require CloudFront signature for this origin (null/empty uses global setting)
+	DefaultRootObject *string  `yaml:"default_root_object"` // Optional: default root object for this origin (null/empty uses global setting)
 }
 
 // CORSConfig holds CORS policy settings
@@ -102,6 +104,10 @@ func (c *Config) Validate() error {
 	if c.Server.Host == "" {
 		c.Server.Host = "0.0.0.0"
 	}
+	if c.Server.DefaultRootObject != "" {
+		c.Server.DefaultRootObject = strings.TrimSpace(c.Server.DefaultRootObject)
+		c.Server.DefaultRootObject = strings.TrimPrefix(c.Server.DefaultRootObject, "/")
+	}
 	if c.Server.TimeoutSeconds <= 0 {
 		c.Server.TimeoutSeconds = 30
 	}
@@ -119,6 +125,14 @@ func (c *Config) Validate() error {
 		}
 		if len(origin.PathPatterns) == 0 {
 			return fmt.Errorf("origin %s: at least one path pattern is required", origin.Name)
+		}
+		// Normalize per-origin default root object if set
+		if origin.DefaultRootObject != nil && *origin.DefaultRootObject != "" {
+			normalized := strings.TrimSpace(*origin.DefaultRootObject)
+			normalized = strings.TrimPrefix(normalized, "/")
+			if normalized != "" {
+				origin.DefaultRootObject = &normalized
+			}
 		}
 	}
 

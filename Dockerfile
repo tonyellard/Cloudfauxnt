@@ -10,7 +10,7 @@ RUN go mod download
 COPY *.go ./
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o cloudfauxnt .
+RUN CGO_ENABLED=0 GOOS=linux go build -o cloudfauxnt .
 
 # Final stage
 FROM alpine:latest

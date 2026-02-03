@@ -29,12 +29,15 @@ func NewProxyHandler(config *Config, validator *SignatureValidator) *ProxyHandle
 
 // ServeHTTP handles the proxy request
 func (ph *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Find matching origin first to determine signature requirement
+	// Find matching origin first to determine signature requirement and default root object
 	origin, err := ph.config.FindOrigin(r.URL.Path)
 	if err != nil {
 		ph.writeCloudFrontError(w, "NoSuchKey", "The specified path does not match any configured origin", http.StatusNotFound)
 		return
 	}
+
+	// Apply default root object for this origin (uses per-origin setting or falls back to global)
+	ph.applyDefaultRootObject(r, origin)
 
 	// Determine if signature is required for this origin
 	requireSignature := ph.config.Signing.Enabled // Default to global setting
@@ -56,6 +59,34 @@ func (ph *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ph.writeCloudFrontError(w, "ServiceUnavailable", err.Error(), http.StatusServiceUnavailable)
 		return
 	}
+}
+
+// applyDefaultRootObject rewrites requests for "/" to the configured default root object.
+// Uses per-origin setting if specified, otherwise falls back to global setting.
+func (ph *ProxyHandler) applyDefaultRootObject(r *http.Request, origin *Origin) {
+	var rootObject string
+
+	// Use per-origin setting if specified, otherwise fall back to global
+	if origin.DefaultRootObject != nil && *origin.DefaultRootObject != "" {
+		rootObject = *origin.DefaultRootObject
+	} else if ph.config.Server.DefaultRootObject != "" {
+		rootObject = ph.config.Server.DefaultRootObject
+	}
+
+	if rootObject == "" {
+		return
+	}
+
+	if r.URL.Path != "" && r.URL.Path != "/" {
+		return
+	}
+
+	rootObject = strings.TrimPrefix(rootObject, "/")
+	if rootObject == "" {
+		return
+	}
+
+	r.URL.Path = "/" + rootObject
 }
 
 // proxyToOrigin forwards the request to the origin server

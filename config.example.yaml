@@ -5,6 +5,10 @@
 server:
   port: 8080
   host: "0.0.0.0"
+  # Optional: Global default root object (fallback if origins don't specify one)
+  # When set, requests to "/" will serve this object instead of listing
+  # Can be overridden per-origin with the origin.default_root_object setting
+  default_root_object: "index.html"
   timeout_seconds: 30
 
 # Backend origin servers
@@ -37,26 +41,32 @@ origins:
   #   strip_prefix: "/MyFiles"
   #   target_prefix: "/myfiles-bucket"
 
-  # Example: Per-origin signature enforcement
-  # This allows some origins to require signatures while others don't
-  # (when signing.enabled is true globally)
-  # - name: public-bucket
+  # Example: Per-origin signature enforcement and default root objects
+  # This allows flexible configuration per origin:
+  # - Different origins can require signatures independently
+  # - Each origin can have its own default root object
+  # - name: website
   #   url: http://ess-three:9000
   #   path_patterns:
-  #     - "/public/*"
-  #   require_signature: false       # Override global setting - allow unsigned access
+  #     - "/website/*"
+  #   strip_prefix: "/website"
+  #   target_prefix: "/website-bucket"
+  #   default_root_object: "index.html"   # Override global for this origin
+  #   require_signature: false             # Override global - allow unsigned access
   #
-  # - name: private-bucket
-  #   url: http://ess-three:9000
+  # - name: api
+  #   url: http://api-backend:8080
   #   path_patterns:
-  #     - "/private/*"
-  #   require_signature: true        # Override global setting - require signatures
+  #     - "/api/*"
+  #   require_signature: true              # Override global - require signatures
+  #   # Omit default_root_object to use global fallback (or no default if global is unset)
   #
-  # - name: protected-bucket
+  # - name: protected-content
   #   url: http://ess-three:9000
   #   path_patterns:
   #     - "/protected/*"
-  #   # Omit require_signature to use the global signing.enabled setting
+  #   default_root_object: "protected-index.html"  # Different default for this origin
+  #   # Omit require_signature to use global signing.enabled setting
 
   # Example: External API
   # - name: external-api

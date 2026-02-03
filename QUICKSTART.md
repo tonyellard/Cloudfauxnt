@@ -62,6 +62,8 @@ Edit `config.yaml` to customize CloudFauxnt's behavior:
 ```yaml
 server:
   port: 8080  # CloudFauxnt listens on this port
+  # Optional: serve this object when requesting "/"
+  default_root_object: "index.html"
   
 origins:
   - name: s3

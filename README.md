@@ -215,12 +215,13 @@ curl -H "Origin: http://localhost:3000" \
 server:
   port: 8080              # Port to listen on
   host: "0.0.0.0"         # Host to bind to
+  default_root_object: "index.html"  # Optional: global default root object (fallback)
   timeout_seconds: 30     # Request timeout
 ```
 
-### Origins with Path Rewriting
+### Origins with Path Rewriting and Per-Origin Settings
 
-Define backend services to proxy to with optional path rewriting:
+Define backend services to proxy to with optional path rewriting and per-origin configuration:
 
 ```yaml
 origins:
@@ -230,12 +231,21 @@ origins:
       - "/s3/*"           # Match paths starting with /s3/
     strip_prefix: "/s3"  # Optional: remove this from request path
     target_prefix: "/test-bucket"  # Optional: add this to proxied path
+    default_root_object: "index.html"  # Optional: override global default for this origin
+    require_signature: false  # Optional: override global signing requirement for this origin
   
   - name: api
     url: https://api.example.com
     path_patterns:
       - "/api/*"
 ```
+
+#### Per-Origin Configuration
+
+Each origin can override server-level defaults:
+
+- **default_root_object** (optional): If set, this origin will serve this object when "/" is requested, overriding the server-level global setting. Useful when different origins have different directory structures.
+- **require_signature** (optional): If set (true/false), overrides the global `signing.enabled` setting for this origin only. Allows mixed security models where some paths require signatures while others don't.
 
 **Pattern Matching:**
 - Exact match: `/health` matches only `/health`
