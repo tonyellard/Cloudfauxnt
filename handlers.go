@@ -36,9 +36,6 @@ func (ph *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Apply default root object for this origin (uses per-origin setting or falls back to global)
-	ph.applyDefaultRootObject(r, origin)
-
 	// Determine if signature is required for this origin
 	requireSignature := ph.config.Signing.Enabled // Default to global setting
 	if origin.RequireSignature != nil {
@@ -59,34 +56,6 @@ func (ph *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ph.writeCloudFrontError(w, "ServiceUnavailable", err.Error(), http.StatusServiceUnavailable)
 		return
 	}
-}
-
-// applyDefaultRootObject rewrites requests for "/" to the configured default root object.
-// Uses per-origin setting if specified, otherwise falls back to global setting.
-func (ph *ProxyHandler) applyDefaultRootObject(r *http.Request, origin *Origin) {
-	var rootObject string
-
-	// Use per-origin setting if specified, otherwise fall back to global
-	if origin.DefaultRootObject != nil && *origin.DefaultRootObject != "" {
-		rootObject = *origin.DefaultRootObject
-	} else if ph.config.Server.DefaultRootObject != "" {
-		rootObject = ph.config.Server.DefaultRootObject
-	}
-
-	if rootObject == "" {
-		return
-	}
-
-	if r.URL.Path != "" && r.URL.Path != "/" {
-		return
-	}
-
-	rootObject = strings.TrimPrefix(rootObject, "/")
-	if rootObject == "" {
-		return
-	}
-
-	r.URL.Path = "/" + rootObject
 }
 
 // proxyToOrigin forwards the request to the origin server
@@ -112,6 +81,17 @@ func (ph *ProxyHandler) proxyToOrigin(w http.ResponseWriter, r *http.Request, or
 		if origin.StripPrefix != "" {
 			req.URL.Path = strings.TrimPrefix(req.URL.Path, origin.StripPrefix)
 		}
+
+		// Apply default root object before adding target prefix
+		// Check if the path is "/" or empty (both mean root) and if so, rewrite to the configured default
+		if (req.URL.Path == "" || req.URL.Path == "/") {
+			if origin.DefaultRootObject != nil && *origin.DefaultRootObject != "" {
+				req.URL.Path = "/" + *origin.DefaultRootObject
+			} else if ph.config.Server.DefaultRootObject != "" {
+				req.URL.Path = "/" + ph.config.Server.DefaultRootObject
+			}
+		}
+
 		if origin.TargetPrefix != "" {
 			req.URL.Path = origin.TargetPrefix + req.URL.Path
 		}

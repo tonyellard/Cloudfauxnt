@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.23-bookworm AS builder
 
 WORKDIR /build
 
@@ -13,10 +13,10 @@ COPY *.go ./
 RUN CGO_ENABLED=0 GOOS=linux go build -o cloudfauxnt .
 
 # Final stage
-FROM alpine:latest
+FROM debian:bookworm-slim
 
 # Install ca-certificates for HTTPS requests to origins
-RUN apk --no-cache add ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
