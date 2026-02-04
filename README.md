@@ -675,8 +675,6 @@ Amazon S3 and Amazon CloudFront are trademarks of Amazon.com, Inc. or its affili
 ## Related Projects
 
 - [ess-three](../essthree) - Lightweight S3 emulator for local development
-- [LocalStack](https://github.com/localstack/localstack) - Full AWS cloud stack emulator
-- [Minio](https://github.com/minio/minio) - High-performance S3-compatible object storage
 
 ## Contributing
 
