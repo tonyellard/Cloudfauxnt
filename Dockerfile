@@ -9,6 +9,9 @@ RUN go mod download
 # Copy source code
 COPY *.go ./
 
+# Copy license files to builder stage
+COPY LICENSE NOTICE ./
+
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o cloudfauxnt .
 
@@ -22,6 +25,9 @@ WORKDIR /app
 
 # Copy binary from builder
 COPY --from=builder /build/cloudfauxnt .
+
+# Copy license files
+COPY --from=builder /build/LICENSE /build/NOTICE ./
 
 # Create directories for config and keys
 RUN mkdir -p /app/keys
