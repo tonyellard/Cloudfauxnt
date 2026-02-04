@@ -4,13 +4,13 @@ A lightweight CloudFront emulator for local development, providing CloudFront-li
 
 ## Features
 
-- ✅ **CloudFront Signed URLs** - Validate canned policy signed URLs with RSA-SHA1
-- ✅ **CloudFront Signed Cookies** - Support for CloudFront-Policy, CloudFront-Signature, CloudFront-Key-Pair-Id
-- ✅ **CORS Handling** - Full preflight and origin validation support
-- ✅ **Multi-Origin Routing** - Route requests to different backends based on path patterns
-- ✅ **CloudFront Headers** - Inject realistic CloudFront headers (X-Amz-Cf-Id, Via, X-Cache)
-- 🐳 **Docker Ready** - Multi-stage Alpine builds, ~15MB final image
-- 🔧 **Simple Configuration** - YAML-based static configuration
+- **CloudFront Signed URLs** - Validate canned policy signed URLs with RSA-SHA1
+- **CloudFront Signed Cookies** - Support for CloudFront-Policy, CloudFront-Signature, CloudFront-Key-Pair-Id
+- **CORS Handling** - Full preflight and origin validation support
+- **Multi-Origin Routing** - Route requests to different backends based on path patterns
+- **CloudFront Headers** - Inject realistic CloudFront headers (X-Amz-Cf-Id, Via, X-Cache)
+- **Docker Ready** - Multi-stage Debian builds with minimal image size
+- **Simple Configuration** - YAML-based static configuration
 
 ## Quick Start
 
@@ -662,6 +662,24 @@ If you see errors like "installsuffix" during Docker build:
 - [ ] Request/response logging
 - [ ] TLS/HTTPS support
 - [ ] Admin API for runtime inspection
+
+## Limitations
+
+CloudFauxnt is a development tool with some intentional limitations:
+
+- **No authentication/authorization** - All requests are accepted (intended for local development)
+- **No request caching** - Every request is proxied in real-time
+- **No CloudFront behaviors** - Advanced CloudFront features like behaviors, distributions not emulated
+- **No S3 Select/Query** - Cannot query object contents
+- **Simplified request signing** - Only validates CloudFront-compatible signatures, not AWS Signature V4
+- **No request logging** - Minimal logging for debugging
+- **Single configuration** - Configuration is static, cannot be changed at runtime
+
+## Support
+
+**Getting Help:** [TBD - Issue tracker and discussion board to be added]
+
+**Reporting Issues:** [TBD - Contribution guidelines to be added]
 
 ## License
 
