@@ -21,9 +21,17 @@ cd Cloudfauxnt
 cp config.example.yaml config.yaml
 ```
 
-### 2. Start Services
+### 2. Create Shared Network
 
-CloudFauxnt and ess-three run as separate Docker containers on a shared network.
+All three services (CloudFauxnt, ess-three, and ess-queue-ess) use a shared Docker bridge network for local development:
+
+```bash
+docker network create shared-network
+```
+
+### 3. Start Services
+
+Start each service in its own terminal. They will automatically connect to the shared network:
 
 **Terminal 1: Start ess-three**
 ```bash
@@ -31,7 +39,13 @@ cd /path/to/ess-three
 docker compose up -d
 ```
 
-**Terminal 2: Start CloudFauxnt**
+**Terminal 2: Start ess-queue-ess**
+```bash
+cd /path/to/ess-queue-ess
+docker compose up -d
+```
+
+**Terminal 3: Start CloudFauxnt**
 ```bash
 cd /path/to/CloudFauxnt
 docker compose up -d
@@ -40,7 +54,13 @@ docker compose up -d
 curl http://localhost:8080/health
 ```
 
-### 3. Generate RSA Keys (if using signing)
+Services can now communicate using container names:
+
+- **ess-three**: `http://ess-three:9000`
+- **ess-queue-ess**: `http://ess-queue-ess:9324`
+- **cloudfauxnt**: `http://cloudfauxnt:8080`
+
+### 4. Generate RSA Keys (if using signing)
 
 ```bash
 cd keys
