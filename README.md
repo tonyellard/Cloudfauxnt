@@ -387,8 +387,7 @@ services:
 
 networks:
   shared-network:
-    driver: bridge
-    name: shared-network
+    external: true
 ```
 
 **CloudFauxnt docker-compose.yml:**
@@ -399,7 +398,7 @@ services:
     build: .
     container_name: cloudfauxnt
     ports:
-      - "8080:8080"
+      - "9001:9001"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       - ./keys:/app/keys:ro
@@ -408,8 +407,7 @@ services:
 
 networks:
   shared-network:
-    driver: bridge
-    name: shared-network
+    external: true
 ```
 
 **Start both services:**
@@ -610,14 +608,20 @@ docker buildx build --platform linux/amd64,linux/arm64 -t cloudfauxnt:latest .
 ### Docker Network Connection Issues
 
 **Containers can't reach each other:**
-- Verify both containers are on the same network: `docker network ls` and `docker network inspect shared-network`
-- Ensure both docker-compose.yml files define the same network: `networks: { shared-network: { driver: bridge, name: shared-network } }`
+- Verify all containers are on the shared network: `docker ps --format "table {{.Names}}\t{{.Networks}}"`
+- If a container is not on the shared network, manually connect it: `docker network connect shared-network <container-name>`
 - Use service names (e.g., `http://ess-three:9000` from within CloudFauxnt) not `localhost` or `127.0.0.1`
-- Check both services are running: `docker ps` should show both cloudfauxnt and ess-three containers
+- Check all services are running: `docker ps` should show cloudfauxnt, ess-three, and ess-queue-ess containers
+
+**Container not connecting to external network on docker compose up:**
+- Docker Compose sometimes fails to connect containers to external networks on the first `up` call
+- Workaround 1: Manually connect: `docker network connect shared-network <container-name>`
+- Workaround 2: Restart the service: `docker compose down && docker compose up -d`
+- Ensure your docker-compose.yml has `external: true` for the shared-network definition
 
 **Error: "dial tcp [::1]:9000: connect: connection refused"**
-- This means Go resolved "localhost" to IPv6, but the origin only listens on IPv4
-- Fix: Use `http://ess-three:9000` (Docker service name) instead of `http://localhost:9000` in config.yaml
+- This means the client resolved "localhost" to IPv6, but the service only listens on IPv4
+- Fix: Use Docker service names (e.g., `http://ess-three:9000`) instead of `http://localhost:9000`
 
 **Testing connectivity:**
 ```bash

@@ -90,11 +90,17 @@ Result:   http://ess-three:9000/test-bucket/MyTestFile.txt
 
 ## Running Separate Containers
 
-CloudFauxnt and ess-three are separate Docker services that communicate via a shared Docker network (`shared-network`):
+CloudFauxnt, ess-three, and ess-queue-ess are separate Docker services that communicate via a shared Docker network (`shared-network`):
 
 ```bash
+# Create the shared network (once)
+docker network create shared-network
+
 # Start ess-three (from ess-three directory)
 cd /path/to/ess-three && docker compose up -d
+
+# Start ess-queue-ess (from ess-queue-ess directory)
+cd /path/to/ess-queue-ess && docker compose up -d
 
 # Start CloudFauxnt (from Cloudfauxnt directory)
 cd /path/to/CloudFauxnt && docker compose up -d
@@ -111,8 +117,16 @@ docker compose restart
 ```
 
 **Hostname Resolution:**
-- Inside Docker: `http://ess-three:9000` (service name)
-- From host machine: `http://localhost:9000` (port mapping)
+- Inside Docker: `http://ess-three:9000`, `http://ess-queue-ess:9324`, `http://cloudfauxnt:9001` (service names)
+- From host machine: `http://localhost:9000`, `http://localhost:9324`, `http://localhost:9001` (port mappings)
+
+**Network Connection Troubleshooting:**
+If containers don't connect to the shared network on first startup, manually connect them:
+```bash
+docker network connect shared-network ess-three
+docker network connect shared-network ess-queue-ess
+docker network connect shared-network cloudfauxnt
+```
 - CloudFauxnt config uses: `http://ess-three:9000` (runs in Docker)
 
 ## Running Locally (No Docker)
