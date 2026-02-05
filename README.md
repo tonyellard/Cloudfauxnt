@@ -58,7 +58,7 @@ Services can now communicate using container names:
 
 - **ess-three**: `http://ess-three:9000`
 - **ess-queue-ess**: `http://ess-queue-ess:9324`
-- **cloudfauxnt**: `http://cloudfauxnt:8080`
+- **cloudfauxnt**: `http://cloudfauxnt:9001`
 
 ### 4. Generate RSA Keys (if using signing)
 

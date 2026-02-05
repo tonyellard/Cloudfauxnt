@@ -33,7 +33,7 @@ COPY --from=builder /build/LICENSE /build/NOTICE ./
 RUN mkdir -p /app/keys
 
 # Expose port
-EXPOSE 8080
+EXPOSE 9001
 
 # Run the application
 CMD ["./cloudfauxnt", "--config", "/app/config.yaml"]

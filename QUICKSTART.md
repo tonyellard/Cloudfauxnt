@@ -51,7 +51,7 @@ curl http://localhost:8080/health
 # Should return: {"status":"healthy","service":"cloudfauxnt"}
 
 # Test proxy with path rewriting
-curl http://localhost:8080/s3/MyTestFile.txt
+curl http://localhost:9001/s3/MyTestFile.txt
 # This proxies to: http://ess-three:9000/test-bucket/MyTestFile.txt
 ```
 
@@ -61,7 +61,7 @@ Edit `config.yaml` to customize CloudFauxnt's behavior:
 
 ```yaml
 server:
-  port: 8080  # CloudFauxnt listens on this port
+  port: 9001  # CloudFauxnt listens on this port
   # Optional: serve this object when requesting "/"
   default_root_object: "index.html"
   
@@ -83,7 +83,7 @@ signing:
 
 **Path Rewriting Example:**
 ```
-Request:  http://localhost:8080/s3/MyTestFile.txt
+Request:  http://localhost:9001/s3/MyTestFile.txt
 Stripped: /MyTestFile.txt
 Result:   http://ess-three:9000/test-bucket/MyTestFile.txt
 ```
@@ -259,7 +259,7 @@ cors:
 ### "Connection refused" when testing
 
 - Check CloudFauxnt is running: `docker compose ps` or `ps aux | grep cloudfauxnt`
-- Check port 8080 is not in use: `lsof -i :8080`
+- Check port 9001 is not in use: `lsof -i :9001`
 
 ### "No origin found for path"
 
@@ -300,7 +300,7 @@ services:
   cloudfauxnt:
     build: .
     ports:
-      - "8080:8080"
+      - "9001:9001"
     volumes:
       - ./config.yaml:/app/config.yaml:ro
       - ./keys:/app/keys:ro
@@ -313,7 +313,7 @@ networks:
   app:
 ```
 
-Then your apps connect to `http://localhost:8080` instead of `http://localhost:9000`.
+Then your apps connect to `http://localhost:9001` instead of `http://localhost:9000`.
 
 ## More Resources
 
@@ -325,7 +325,7 @@ Then your apps connect to `http://localhost:8080` instead of `http://localhost:9
 ## Getting Help
 
 - Check logs: `docker compose logs cloudfauxnt` or `journalctl -u cloudfauxnt`
-- Test health: `curl http://localhost:8080/health`
+- Test health: `curl http://localhost:9001/health`
 - Verify config: `./cloudfauxnt --config config.yaml` (will show validation errors)
 
 Happy coding! 🎉

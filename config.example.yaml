@@ -3,7 +3,7 @@
 
 # HTTP server configuration
 server:
-  port: 8080
+  port: 9001
   host: "0.0.0.0"
   # Optional: Global default root object (fallback if origins don't specify one)
   # When set, requests to "/" will serve this object instead of listing

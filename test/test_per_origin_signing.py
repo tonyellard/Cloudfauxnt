@@ -13,7 +13,7 @@ import json
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = "http://localhost:9001"
 KEY_PAIR_ID = "APKAJEXAMPLE123456"
 PRIVATE_KEY_PATH = "../keys/private.pem"
 

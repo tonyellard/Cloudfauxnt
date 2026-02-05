@@ -181,15 +181,15 @@ python test/test_per_origin_signing.py
 
 ```bash
 # Public path - unsigned should work
-curl http://localhost:8080/public/file.txt
+curl http://localhost:9001/public/file.txt
 # ✅ 200 OK
 
 # Private path - unsigned should fail
-curl http://localhost:8080/private/file.txt
+curl http://localhost:9001/private/file.txt
 # ❌ 403 Forbidden
 
 # Private path - signed should work
-curl "http://localhost:8080/private/file.txt?Expires=...&Signature=...&Key-Pair-Id=..."
+curl "http://localhost:9001/private/file.txt?Expires=...&Signature=...&Key-Pair-Id=..."
 # ✅ 200 OK
 ```
 
